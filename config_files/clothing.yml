@@ -10,7 +10,7 @@ experiment:
 #        visual_features: ../data/{0}/image_feat
 #      - dataloader: TextualAttribute
 #        textual_features: ../data/{0}/text_feat
-  dataset: toys
+  dataset: clothing
   top_k: 50
   evaluation:
     cutoffs: [10, 20, 50]
