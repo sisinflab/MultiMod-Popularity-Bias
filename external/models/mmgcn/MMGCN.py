@@ -3,10 +3,6 @@ Module description:
 
 """
 
-__version__ = '0.3.0'
-__author__ = 'Vito Walter Anelli, Claudio Pomo, Daniele Malitesta'
-__email__ = 'vitowalter.anelli@poliba.it, claudio.pomo@poliba.it, daniele.malitesta@poliba.it'
-
 from ast import literal_eval as make_tuple
 
 from tqdm import tqdm
@@ -19,7 +15,6 @@ from elliot.dataset.samplers import custom_sampler_full as csf
 from elliot.recommender import BaseRecommenderModel
 from elliot.recommender.base_recommender_model import init_charger
 from elliot.recommender.recommender_utils_mixin import RecMixin
-from external.mumo4rec.MultiModRec import MultiModRec
 from .MMGCNModel import MMGCNModel
 
 from torch_sparse import SparseTensor
