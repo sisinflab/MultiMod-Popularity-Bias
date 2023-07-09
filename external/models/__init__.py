@@ -1,6 +1,6 @@
 def import_model_by_backend(tensorflow_cmd, pytorch_cmd):
     import sys
-    for _backend in sys.modules["multimodal"].backend:
+    for _backend in sys.modules["external"].backend:
         if _backend == "tensorflow":
             exec(tensorflow_cmd)
         elif _backend == "pytorch":
