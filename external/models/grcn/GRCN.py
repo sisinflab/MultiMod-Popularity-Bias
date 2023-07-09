@@ -20,7 +20,7 @@ from .GRCNModel import GRCNModel
 from torch_sparse import SparseTensor
 
 
-class GRCN(RecMixin, BaseRecommenderModel, MultiModRec):
+class GRCN(RecMixin, BaseRecommenderModel):
     r"""
     Graph-Refined Convolutional Network for Multimedia Recommendation with Implicit Feedback
 

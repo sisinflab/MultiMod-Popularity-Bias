@@ -20,7 +20,7 @@ from .MGATModel import MGATModel
 from torch_sparse import SparseTensor
 
 
-class MGAT(RecMixin, BaseRecommenderModel, MultiModRec):
+class MGAT(RecMixin, BaseRecommenderModel):
     r"""
     MGAT: Multimodal Graph Attention Network for Recommendation
 

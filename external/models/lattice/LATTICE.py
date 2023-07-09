@@ -19,7 +19,7 @@ from torch_sparse import SparseTensor
 from .LATTICEModel import LATTICEModel
 
 
-class LATTICE(RecMixin, BaseRecommenderModel, MultiModRec):
+class LATTICE(RecMixin, BaseRecommenderModel):
     r"""
     Mining Latent Structures for Multimedia Recommendation
 

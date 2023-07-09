@@ -20,7 +20,7 @@ from .MMGCNModel import MMGCNModel
 from torch_sparse import SparseTensor
 
 
-class MMGCN(RecMixin, BaseRecommenderModel, MultiModRec):
+class MMGCN(RecMixin, BaseRecommenderModel):
     r"""
     MMGCN: Multi-modal Graph Convolution Network for Personalized Recommendation of Micro-video
 
