@@ -99,11 +99,6 @@ class BPRMF(RecMixin, BaseRecommenderModel):
 
             self.evaluate(it, loss / (it + 1))
 
-        with open('./results/{0}/performance/'.format(self._config.dataset) + 'freq_users.json', 'w') as f:
-            json.dump(self._sampler.freq_users, f)
-        with open('./results/{0}/performance/'.format(self._config.dataset) + 'freq_items.json', 'w') as f:
-            json.dump(self._sampler.freq_items, f)
-
     def get_recommendations(self, k: int = 100):
         predictions_top_k_test = {}
         predictions_top_k_val = {}
