@@ -72,7 +72,7 @@ def run_experiment(config_path: str = ''):
                 external.backend = base.base_namespace.backend
                 sys.modules[spec.name] = external
                 spec.loader.exec_module(external)
-                model_class = getattr(importlib.import_module("multimodal"), key.split(".", 1)[1])
+                model_class = getattr(importlib.import_module("external"), key.split(".", 1)[1])
             else:
                 model_class = getattr(importlib.import_module("elliot.recommender"), key)
 
