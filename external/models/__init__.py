@@ -18,3 +18,4 @@ for _backend in sys.modules["external"].backend:
         from .mgat.MGAT import MGAT
         from .mmgcn.MMGCN import MMGCN
         from .vbpr.VBPR import VBPR
+        from .bprmf.BPRMF import BPRMF
