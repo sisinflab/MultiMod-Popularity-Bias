@@ -65,8 +65,8 @@ def run_experiment(config_path: str = ''):
         all_trials[key] = []
         for test_fold_index, data_test in enumerate(data_test_list):
             logging_project.prepare_logger(key, base.base_namespace.path_log_folder)
-            if key.startswith("multimodal."):
-                spec = importlib.util.spec_from_file_location("multimodal",
+            if key.startswith("external."):
+                spec = importlib.util.spec_from_file_location("external",
                                                               path.relpath(base.base_namespace.external_models_path))
                 external = importlib.util.module_from_spec(spec)
                 external.backend = base.base_namespace.backend
@@ -213,14 +213,14 @@ def config_test(builder, base):
             test_results = []
             test_trials = []
             for data_test in data_test_list:
-                if key.startswith("multimodal."):
-                    spec = importlib.util.spec_from_file_location("multimodal",
+                if key.startswith("external."):
+                    spec = importlib.util.spec_from_file_location("external",
                                                                   path.relpath(
                                                                       base.base_namespace.external_models_path))
                     external = importlib.util.module_from_spec(spec)
                     sys.modules[spec.name] = external
                     spec.loader.exec_module(external)
-                    model_class = getattr(importlib.import_module("multimodal"), key.split(".", 1)[1])
+                    model_class = getattr(importlib.import_module("external"), key.split(".", 1)[1])
                 else:
                     model_class = getattr(importlib.import_module("elliot.recommender"), key)
 
