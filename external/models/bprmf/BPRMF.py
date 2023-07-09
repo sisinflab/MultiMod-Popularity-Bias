@@ -1,49 +1,81 @@
-from tqdm import tqdm
-import numpy as np
+"""
+Module description:
+
+"""
+
 import torch
 import os
-import random
+from tqdm import tqdm
+import json
 
+from elliot.dataset.samplers import custom_sampler as cs
 from elliot.utils.write import store_recommendation
+
 from elliot.recommender import BaseRecommenderModel
-from elliot.recommender.base_recommender_model import init_charger
-from elliot.recommender.recommender_utils_mixin import RecMixin
 from .BPRMFModel import BPRMFModel
-
-from elliot.dataset.samplers.custom_sampler import Sampler
-
-import math
+from elliot.recommender.recommender_utils_mixin import RecMixin
+from elliot.recommender.base_recommender_model import init_charger
 
 
 class BPRMF(RecMixin, BaseRecommenderModel):
+    r"""
+    Batch Bayesian Personalized Ranking with Matrix Factorization
+
+    For further details, please refer to the `paper <https://arxiv.org/abs/1205.2618.pdf>`_
+
+    Args:
+        factors: Number of latent factors
+        lr: Learning rate
+        l_w: Regularization coefficient for latent factors
+
+    To include the recommendation model, add it to the config file adopting the following pattern:
+
+    .. code:: yaml
+
+      models:
+        BPRMF:
+          meta:
+            save_recs: True
+          epochs: 10
+          batch_size: 512
+          factors: 10
+          lr: 0.001
+          l_w: 0.1
+    """
+
     @init_charger
     def __init__(self, data, config, params, *args, **kwargs):
-        ######################################
+        """
+        Create a BPR-MF instance.
+        (see https://arxiv.org/pdf/1205.2618 for details about the algorithm design choices).
+
+        Args:
+            data: data loader object
+            params: model parameters {embed_k: embedding size,
+                                      [l_w]: regularization,
+                                      lr: learning rate}
+        """
 
         self._params_list = [
-            ("_learning_rate", "lr", "lr", 0.0005, float, None),
-            ("_factors", "factors", "factors", 64, int, None),
-            ("_l_w", "l_w", "l_w", 0.01, float, None),
+            ("_factors", "factors", "factors", 10, int, None),
+            ("_learning_rate", "lr", "lr", 0.001, float, None),
+            ("_l_w", "l_w", "l_w", 0.1, float, None)
         ]
         self.autoset_params()
 
-        self._sampler = Sampler(self._data.i_train_dict, self._seed)
+        if self._batch_size < 1:
+            self._batch_size = self._data.transactions
 
-        random.seed(self._seed)
-        np.random.seed(self._seed)
-        torch.manual_seed(self._seed)
+        self._ratings = self._data.train_dict
 
-        self._model = BPRMFModel(
-            num_users=self._num_users,
-            num_items=self._num_items,
-            init=self._embedder_initializer,
-            optimizer=self._optimizer_type,
-            embed_regularizer=self._embed_regularizer,
-            learning_rate=self._learning_rate,
-            embed_k=self._factors,
-            l_w=self._l_w,
-            random_seed=self._seed
-        )
+        self._sampler = cs.Sampler(self._data.i_train_dict, self._seed)
+
+        self._model = BPRMFModel(self._num_users,
+                                 self._num_items,
+                                 self._learning_rate,
+                                 self._factors,
+                                 self._l_w,
+                                 self._seed)
 
     @property
     def name(self):
@@ -58,33 +90,29 @@ class BPRMF(RecMixin, BaseRecommenderModel):
         for it in self.iterate(self._epochs):
             loss = 0
             steps = 0
-            n_batch = int(
-                self._data.transactions / self._batch_size) if self._data.transactions % self._batch_size == 0 else int(
-                self._data.transactions / self._batch_size) + 1
-            with tqdm(total=n_batch, disable=not self._verbose) as t:
+            with tqdm(total=int(self._data.transactions // self._batch_size), disable=not self._verbose) as t:
                 for batch in self._sampler.step(self._data.transactions, self._batch_size):
                     steps += 1
                     loss += self._model.train_step(batch)
-
-                    if math.isnan(loss) or math.isinf(loss) or (not loss):
-                        break
-
                     t.set_postfix({'loss': f'{loss / steps:.5f}'})
                     t.update()
 
             self.evaluate(it, loss / (it + 1))
 
+        with open('./results/{0}/performance/'.format(self._config.dataset) + 'freq_users.json', 'w') as f:
+            json.dump(self._sampler.freq_users, f)
+        with open('./results/{0}/performance/'.format(self._config.dataset) + 'freq_items.json', 'w') as f:
+            json.dump(self._sampler.freq_items, f)
+
     def get_recommendations(self, k: int = 100):
         predictions_top_k_test = {}
         predictions_top_k_val = {}
-        self._model.eval()
-        with torch.no_grad():
-            for index, offset in enumerate(range(0, self._num_users, self._batch_size)):
-                offset_stop = min(offset + self._batch_size, self._num_users)
-                predictions = self._model.predict(torch.arange(offset, offset_stop, dtype=torch.long))
-                recs_val, recs_test = self.process_protocol(k, predictions, offset, offset_stop)
-                predictions_top_k_val.update(recs_val)
-                predictions_top_k_test.update(recs_test)
+        for index, offset in enumerate(range(0, self._num_users, self._batch_size)):
+            offset_stop = min(offset + self._batch_size, self._num_users)
+            predictions = self._model.predict(offset, offset_stop)
+            recs_val, recs_test = self.process_protocol(k, predictions, offset, offset_stop)
+            predictions_top_k_val.update(recs_val)
+            predictions_top_k_test.update(recs_test)
         return predictions_top_k_val, predictions_top_k_test
 
     def get_single_recommendation(self, mask, k, predictions, offset, offset_stop):
@@ -103,7 +131,7 @@ class BPRMF(RecMixin, BaseRecommenderModel):
             self._results.append(result_dict)
 
             if it is not None:
-                self.logger.info(f'Epoch {(it + 1)}/{self._epochs} loss {loss/(it + 1):.5f}')
+                self.logger.info(f'Epoch {(it + 1)}/{self._epochs} loss {loss / (it + 1):.5f}')
             else:
                 self.logger.info(f'Finished')
 
