@@ -144,7 +144,7 @@ def init_charger(init):
     def new_init(self, *args, **kwargs):
         BaseRecommenderModel.__init__(self, *args, **kwargs)
         package_name = inspect.getmodule(self).__package__
-        rec_name = f"multimodal.{self.__class__.__name__}" if "multimodal" in package_name else self.__class__.__name__
+        rec_name = f"external.{self.__class__.__name__}" if "external" in package_name else self.__class__.__name__
         self.logger = logging.get_logger_model(rec_name, pylog.CRITICAL if self._config.config_test else pylog.DEBUG)
         np.random.seed(self._seed)
         random.seed(self._seed)
