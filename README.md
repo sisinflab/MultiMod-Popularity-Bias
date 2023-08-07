@@ -1,6 +1,6 @@
 # MultiMod-Popularity-Bias
 
-This is the official implementation of the paper _On Popularity Bias of Multimodal-aware Recommender Systems: a Modalities-driven Analysis_, under review as full paper at MMIR’23@ACM Multimedia.
+This is the official implementation of the paper _On Popularity Bias of Multimodal-aware Recommender Systems: a Modalities-driven Analysis_, accepted as full paper at MMIR’23@ACM Multimedia.
 
 This repository is heavily dependent on the framework **Elliot**, so we suggest you refer to the official GitHub [page](https://github.com/sisinflab/elliot) and [documentation](https://elliot.readthedocs.io/en/latest/).
 
